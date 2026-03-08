@@ -1,0 +1,306 @@
+'use client';
+
+import { useEffect, useMemo, useState } from "react";
+import type { AgentCard, WarRoomSnapshot } from "@/lib/mockData";
+import { supabase } from "@/lib/supabase";
+
+const statusStyles: Record<string, string> = {
+  running: "border-amber-500/40 bg-amber-500/10 text-amber-200",
+  idle: "border-emerald-500/30 bg-emerald-500/5 text-emerald-200",
+  blocked: "border-rose-500/40 bg-rose-500/10 text-rose-200",
+};
+
+const streamPills: Record<string, string> = {
+  Product: "bg-blue-500/15 text-blue-200",
+  Ops: "bg-lime-500/10 text-lime-200",
+  Comms: "bg-pink-500/15 text-pink-200",
+  Infra: "bg-cyan-500/15 text-cyan-200",
+};
+
+const statusLabel = {
+  running: "RUNNING",
+  idle: "IDLE",
+  blocked: "BLOCKED",
+};
+
+type Props = {
+  initialSnapshot: WarRoomSnapshot;
+};
+
+export function WarRoomSurface({ initialSnapshot }: Props) {
+  const [snapshot, setSnapshot] = useState(initialSnapshot);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+
+  useEffect(() => {
+    let refreshTimeout: NodeJS.Timeout | null = null;
+
+    const refreshSnapshot = async () => {
+      try {
+        const res = await fetch("/api/snapshot", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = (await res.json()) as WarRoomSnapshot;
+        setSnapshot(data);
+        setLastUpdated(new Date());
+      } catch (error) {
+        console.error("Failed to refresh snapshot", error);
+      }
+    };
+
+    const scheduleRefresh = () => {
+      if (refreshTimeout) clearTimeout(refreshTimeout);
+      refreshTimeout = setTimeout(refreshSnapshot, 600);
+    };
+
+    if (supabase) {
+      const channel = supabase
+        .channel("war-room-feed")
+        .on("postgres_changes", { event: "*", schema: "public", table: "war_room_events" }, scheduleRefresh)
+        .on("postgres_changes", { event: "*", schema: "public", table: "war_room_agents" }, scheduleRefresh)
+        .on("postgres_changes", { event: "*", schema: "public", table: "war_room_objectives" }, scheduleRefresh)
+        .subscribe();
+
+      return () => {
+        if (refreshTimeout) clearTimeout(refreshTimeout);
+        supabase?.removeChannel(channel);
+      };
+    }
+
+    const fallbackInterval = setInterval(refreshSnapshot, 15000);
+    return () => {
+      clearInterval(fallbackInterval);
+      if (refreshTimeout) clearTimeout(refreshTimeout);
+    };
+  }, []);
+
+  const orbitNodes = useMemo(() => buildOrbit(snapshot), [snapshot]);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#03010b] via-[#05050f] to-black text-slate-100">
+      <div className="mx-auto max-w-6xl px-6 py-10 space-y-10">
+        <header className="flex flex-col gap-4 rounded-[2rem] border border-white/5 bg-white/5/20 px-6 py-5 backdrop-blur">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.4em] text-amber-200">War Room · Live Ops Board</p>
+              <h1 className="text-3xl font-semibold text-white">Agent telemetry</h1>
+            </div>
+            <div className="rounded-full border border-emerald-400/50 bg-emerald-400/10 px-4 py-1 text-sm text-emerald-200">
+              Synced · {formatTime(lastUpdated)} ET
+            </div>
+          </div>
+          <p className="text-sm text-slate-300 lg:max-w-3xl">
+            Transparency snapshot for Merch on Tap + future builds. Every tile tracks a named agent, their current directive, and when they’ll surface next.
+          </p>
+        </header>
+
+        <section className="relative hidden h-[720px] overflow-hidden rounded-[46px] border border-white/10 bg-gradient-to-b from-white/5/10 via-transparent to-white/5/10 p-6 lg:block">
+          <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="wire-active" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.95" />
+                <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.25" />
+              </linearGradient>
+            </defs>
+            {orbitNodes.map((node) => (
+              <line
+                key={`wire-${node.agent.id}`}
+                x1="50"
+                y1="50"
+                x2={node.coordX.toFixed(2)}
+                y2={node.coordY.toFixed(2)}
+                stroke={node.agent.status === "running" ? "url(#wire-active)" : "rgba(255,255,255,0.15)"}
+                strokeWidth={node.agent.status === "running" ? 1.2 : 0.5}
+                strokeLinecap="round"
+                className={node.agent.status === "running" ? "animate-pulse" : ""}
+              />
+            ))}
+          </svg>
+
+          <div className="absolute left-1/2 top-1/2 h-[26rem] w-[26rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
+          <div className="absolute left-1/2 top-1/2 h-[18rem] w-[18rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
+
+          <div className="absolute left-1/2 top-1/2 flex h-48 w-48 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-amber-400/40 bg-gradient-to-b from-amber-500/30 to-amber-400/20 text-center shadow-[0_0_80px_rgba(251,191,36,0.25)]">
+            <div className="text-sm uppercase tracking-[0.5em] text-amber-100/80">Jan</div>
+            <div className="text-3xl font-semibold text-white">1.2</div>
+            <p className="mt-3 text-xs text-amber-50/80">Merch on Tap · Command Hub</p>
+          </div>
+
+          {orbitNodes.map((node) => (
+            <div
+              key={node.agent.id}
+              className="absolute -translate-x-1/2 -translate-y-1/2"
+              style={{ left: `${node.positionX}%`, top: `${node.positionY}%` }}
+            >
+              <AgentCardBlock agent={node.agent} ticker={node.ticker} />
+            </div>
+          ))}
+        </section>
+
+        <section className="space-y-4 lg:hidden">
+          {snapshot.agents.map((agent) => (
+            <AgentCardBlock
+              key={`mobile-${agent.id}`}
+              agent={agent}
+              ticker={buildTickerMessages(agent, snapshot.activity)}
+              size="full"
+            />
+          ))}
+        </section>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <section className="rounded-[2rem] border border-white/5 bg-white/5/15 px-6 py-6 backdrop-blur lg:col-span-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Direction map</p>
+                <h3 className="text-lg font-semibold text-white">What the crew is driving</h3>
+              </div>
+              <span className="text-xs text-slate-400">Updated hourly</span>
+            </div>
+            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+              {snapshot.objectives.map((objective) => (
+                <div key={objective.label} className="rounded-3xl border border-white/5 bg-white/5/20 p-5">
+                  <div className="flex items-center justify-between text-xs text-slate-400">
+                    <span>{objective.stream}</span>
+                    <span>{objective.status}</span>
+                  </div>
+                  <p className="mt-2 text-sm font-semibold text-white">{objective.label}</p>
+                  <div className="mt-3 inline-flex items-center gap-2 text-xs">
+                    <span className="text-slate-300">Lead</span>
+                    <span className={`rounded-full px-3 py-1 ${getStreamPill(objective.stream)}`}>
+                      {objective.owner}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-[2rem] border border-white/5 bg-white/5/15 p-5 backdrop-blur">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Activity ticker</p>
+                <h3 className="text-lg font-semibold text-white">Live feed</h3>
+              </div>
+              <span className="text-xs text-slate-400">Last 5 entries</span>
+            </div>
+            <div className="mt-4 h-[28rem] space-y-4 overflow-y-auto pr-2 text-sm">
+              {snapshot.activity.map((event, index) => (
+                <div key={`${event.time}-${index}`} className="rounded-3xl border border-white/5 bg-white/5/20 p-4">
+                  <div className="flex items-center justify-between text-xs text-slate-400">
+                    <span>{event.time}</span>
+                    <span>{event.agent}</span>
+                  </div>
+                  <p className="mt-2 text-slate-100">{event.message}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function buildOrbit(snapshot: WarRoomSnapshot) {
+  const total = Math.max(snapshot.agents.length, 1);
+  const angleStep = (Math.PI * 2) / total;
+  const radius = 34;
+
+  return snapshot.agents.map((agent, index) => {
+    const angle = index * angleStep - Math.PI / 2;
+    const coordX = 50 + Math.cos(angle) * radius;
+    const coordY = 50 + Math.sin(angle) * radius;
+
+    return {
+      agent,
+      coordX,
+      coordY,
+      positionX: coordX,
+      positionY: coordY,
+      ticker: buildTickerMessages(agent, snapshot.activity),
+    };
+  });
+}
+
+function buildTickerMessages(agent: AgentCard, activity: WarRoomSnapshot["activity"]) {
+  const messages = activity
+    .filter((event) => event.agent === agent.name)
+    .map((event) => `${event.time} · ${event.message}`);
+
+  if (!messages.length) {
+    messages.push(`${formatTime(new Date())} · ${agent.directive}`);
+  }
+
+  if (messages.length === 1) {
+    messages.push(`${messages[0]} · standby`);
+  }
+
+  return messages.slice(0, 4);
+}
+
+function formatTime(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZone: "America/New_York",
+  }).format(date);
+}
+
+type AgentCardBlockProps = {
+  agent: AgentCard;
+  ticker: string[];
+  size?: "compact" | "full";
+};
+
+function AgentCardBlock({ agent, ticker, size = "compact" }: AgentCardBlockProps) {
+  const cardWidth = size === "compact" ? "w-64" : "w-full";
+  const marquee = ticker.length > 1 ? ticker : [...ticker, ticker[0]];
+
+  return (
+    <div className={`${cardWidth} rounded-3xl border border-white/10 bg-black/40 p-4 shadow-[0_20px_45px_rgba(0,0,0,0.35)] backdrop-blur`}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{agent.icon}</span>
+          <div>
+            <p className="text-xs uppercase tracking-[0.25em] text-slate-400">{agent.stream}</p>
+            <h2 className="text-lg font-semibold text-white">{agent.name}</h2>
+          </div>
+        </div>
+        <span
+          className={`rounded-full border px-3 py-1 text-[11px] font-semibold ${getStatusBadge(agent.status)}`}
+        >
+          {statusLabel[agent.status as keyof typeof statusLabel] ?? agent.status}
+        </span>
+      </div>
+      <p className="mt-3 text-xs text-slate-200">{agent.directive}</p>
+      <div className="mt-4">
+        <div className="h-2 rounded-full bg-white/10">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-amber-200"
+            style={{ width: `${Math.min(agent.progress, 1) * 100}%` }}
+          />
+        </div>
+        <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400">
+          <span>{Math.round(Math.min(agent.progress, 1) * 100)}%</span>
+          <span>{agent.checkpoint}</span>
+        </div>
+      </div>
+      <div className="mt-4 overflow-hidden rounded-full border border-white/5 bg-white/5/30 px-3 py-1">
+        <div className="ticker-row whitespace-nowrap text-[10px] uppercase tracking-[0.35em] text-slate-300">
+          {marquee.map((item, idx) => (
+            <span key={`${agent.id}-ticker-${idx}`}>{item}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function getStatusBadge(status: string) {
+  const key = status as keyof typeof statusStyles;
+  return statusStyles[key] ?? "border-white/10 bg-white/5 text-white";
+}
+
+function getStreamPill(stream: AgentCard["stream"]) {
+  return streamPills[stream] ?? "bg-white/10";
+}
