@@ -7,7 +7,7 @@ export type AgentCard = {
   directive: string;
   progress: number;
   checkpoint: string;
-  stream: "Product" | "Ops" | "Comms" | "Infra";
+  stream: "Build" | "QA" | "Catalog" | "Content" | "Creative";
   icon: string;
 };
 
@@ -33,69 +33,85 @@ export type WarRoomSnapshot = {
 export const mockSnapshot: WarRoomSnapshot = {
   agents: [
     {
-      id: "cask",
-      name: "Cask Scribe",
-      status: "running",
-      directive: "Archive reset summary for 12:00 ET",
-      progress: 0.68,
-      checkpoint: "Next ping · 12:00",
-      stream: "Ops",
-      icon: "✍️",
-    },
-    {
       id: "draft",
       name: "Draftwright",
       status: "running",
-      directive: "Scaffold War Room UI (tiles + ticker)",
-      progress: 0.42,
-      checkpoint: "Layout review · 13:30",
-      stream: "Product",
+      directive: "Blueprint site map + section build checklist",
+      progress: 0.64,
+      checkpoint: "Checklist sync · 11:30",
+      stream: "Build",
       icon: "🧱",
-    },
-    {
-      id: "neon",
-      name: "Neon Bard",
-      status: "idle",
-      directive: "Waiting for tile components",
-      progress: 0,
-      checkpoint: "Queued",
-      stream: "Comms",
-      icon: "💡",
     },
     {
       id: "sentinel",
       name: "Cellar Sentinel",
       status: "idle",
-      directive: "Next check at 02:00 (night watch)",
-      progress: 0,
-      checkpoint: "Scheduled",
-      stream: "Infra",
+      directive: "Click through nav + checkout QA",
+      progress: 0.0,
+      checkpoint: "Next sweep · 13:00",
+      stream: "QA",
       icon: "🛰️",
+    },
+    {
+      id: "cask",
+      name: "Cask Scribe",
+      status: "running",
+      directive: "Normalize product metadata + collections",
+      progress: 0.44,
+      checkpoint: "Catalog push · 10:15",
+      stream: "Catalog",
+      icon: "✍️",
+    },
+    {
+      id: "neon",
+      name: "Neon Bard",
+      status: "running",
+      directive: "Draft microcopy for Jan hub + ticker CTA",
+      progress: 0.18,
+      checkpoint: "Copy review · 10:45",
+      stream: "Content",
+      icon: "💡",
+    },
+    {
+      id: "mocksmith",
+      name: "Mocksmith",
+      status: "idle",
+      directive: "Prep product mockups + hero banners",
+      progress: 0,
+      checkpoint: "Brief drop · 11:15",
+      stream: "Creative",
+      icon: "🎨",
     },
   ],
   objectives: [
     {
-      label: "Deploy neutral War Room shell",
+      label: "Architect Jan’s Storefront",
       owner: "Draftwright",
-      stream: "Product",
+      stream: "Build",
       status: "In flight",
     },
     {
-      label: "Wire mock data to Supabase tables",
-      owner: "Cask Scribe",
-      stream: "Ops",
-      status: "Next",
-    },
-    {
-      label: "Prep agent-event writer script",
+      label: "QA forms + checkout",
       owner: "Cellar Sentinel",
-      stream: "Infra",
+      stream: "QA",
       status: "Next",
     },
     {
-      label: "Copy sweep for dashboard tiles",
+      label: "Catalog grooming",
+      owner: "Cask Scribe",
+      stream: "Catalog",
+      status: "In flight",
+    },
+    {
+      label: "Hub copy + SEO",
       owner: "Neon Bard",
-      stream: "Comms",
+      stream: "Content",
+      status: "In flight",
+    },
+    {
+      label: "Hero visuals",
+      owner: "Mocksmith",
+      stream: "Creative",
       status: "Blocked",
     },
   ],
@@ -103,27 +119,27 @@ export const mockSnapshot: WarRoomSnapshot = {
     {
       time: "11:02",
       agent: "Draftwright",
-      message: "Initialized Next.js app (Tailwind, TS) for jansworkspace.net",
+      message: "Blueprinted new site map + section assignments",
     },
     {
       time: "10:48",
       agent: "Cask Scribe",
-      message: "Logged agent roster + War Room spec into docs",
+      message: "Normalized catalog tags + variants",
     },
     {
       time: "10:30",
       agent: "Neon Bard",
-      message: "Outlined hero + section copy blocks (awaiting layout)",
+      message: "Outlined hub hero copy + ticker CTA",
     },
     {
       time: "09:55",
       agent: "Cellar Sentinel",
-      message: "Cron swap confirmed (Archive reset reminders firing)",
+      message: "QA’d checkout flow on mobile",
     },
     {
       time: "09:10",
-      agent: "Tap Hunter",
-      message: "No run scheduled · standing by",
+      agent: "Mocksmith",
+      message: "Queued mockup prompts for beverage merch",
     },
   ],
 };

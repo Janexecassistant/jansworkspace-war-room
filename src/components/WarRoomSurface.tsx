@@ -11,17 +11,19 @@ const statusStyles: Record<string, string> = {
 };
 
 const streamPills: Record<string, string> = {
-  Product: "bg-blue-500/15 text-blue-200",
-  Ops: "bg-lime-500/10 text-lime-200",
-  Comms: "bg-pink-500/15 text-pink-200",
-  Infra: "bg-cyan-500/15 text-cyan-200",
+  Build: "bg-blue-500/15 text-blue-200",
+  QA: "bg-emerald-500/15 text-emerald-200",
+  Catalog: "bg-amber-500/15 text-amber-200",
+  Content: "bg-pink-500/15 text-pink-200",
+  Creative: "bg-purple-500/15 text-purple-200",
 };
 
 const roleDescriptions: Record<AgentCard["stream"], string> = {
-  Product: "Primary: Product systems & UX",
-  Ops: "Primary: Ops + automation",
-  Comms: "Primary: Comms / copy",
-  Infra: "Primary: Infra monitoring",
+  Build: "Primary: Store architecture + build",
+  QA: "Primary: Browser QA + regression",
+  Catalog: "Primary: Product catalog & data",
+  Content: "Primary: Content + SEO",
+  Creative: "Primary: Visuals & mockups",
 };
 
 const statusLabel = {
