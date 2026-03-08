@@ -39,3 +39,22 @@ body {
   gap: 2rem;
   animation: ticker-slide 14s linear infinite;
 }
+
+@keyframes wire-pulse {
+  0% {
+    stroke-dashoffset: 120;
+    opacity: 0.3;
+  }
+  50% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: -120;
+    opacity: 0.4;
+  }
+}
+
+.wire-active {
+  animation: wire-pulse 2.4s linear infinite;
+}

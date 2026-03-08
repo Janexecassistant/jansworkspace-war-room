@@ -17,6 +17,13 @@ const streamPills: Record<string, string> = {
   Infra: "bg-cyan-500/15 text-cyan-200",
 };
 
+const roleDescriptions: Record<AgentCard["stream"], string> = {
+  Product: "Primary: Product systems & UX",
+  Ops: "Primary: Ops + automation",
+  Comms: "Primary: Comms / copy",
+  Infra: "Primary: Infra monitoring",
+};
+
 const statusLabel = {
   running: "RUNNING",
   idle: "IDLE",
@@ -110,7 +117,8 @@ export function WarRoomSurface({ initialSnapshot }: Props) {
                 stroke={node.agent.status === "running" ? "url(#wire-active)" : "rgba(255,255,255,0.15)"}
                 strokeWidth={node.agent.status === "running" ? 1.2 : 0.5}
                 strokeLinecap="round"
-                className={node.agent.status === "running" ? "animate-pulse" : ""}
+                strokeDasharray={node.agent.status === "running" ? "6" : undefined}
+                className={node.agent.status === "running" ? "wire-active" : ""}
               />
             ))}
           </svg>
@@ -255,6 +263,7 @@ type AgentCardBlockProps = {
 function AgentCardBlock({ agent, ticker, size = "compact" }: AgentCardBlockProps) {
   const cardWidth = size === "compact" ? "w-64" : "w-full";
   const marquee = ticker.length > 1 ? ticker : [...ticker, ticker[0]];
+  const roleText = roleDescriptions[agent.stream] ?? `Primary: ${agent.stream}`;
 
   return (
     <div className={`${cardWidth} rounded-3xl border border-white/10 bg-black/40 p-4 shadow-[0_20px_45px_rgba(0,0,0,0.35)] backdrop-blur`}>
@@ -264,6 +273,7 @@ function AgentCardBlock({ agent, ticker, size = "compact" }: AgentCardBlockProps
           <div>
             <p className="text-xs uppercase tracking-[0.25em] text-slate-400">{agent.stream}</p>
             <h2 className="text-lg font-semibold text-white">{agent.name}</h2>
+            <p className="text-[11px] text-slate-400">{roleText}</p>
           </div>
         </div>
         <span
