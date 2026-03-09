@@ -139,7 +139,7 @@ export function WarRoomSurface({ initialSnapshot }: Props) {
           </p>
         </header>
 
-        <section className="relative hidden h-[720px] overflow-hidden rounded-[46px] border border-white/10 bg-gradient-to-b from-white/5/10 via-transparent to-white/5/10 p-6 lg:block">
+        <section className="relative h-[420px] overflow-hidden rounded-[46px] border border-white/10 bg-gradient-to-b from-white/5/10 via-transparent to-white/5/10 p-6 lg:h-[720px]">
           <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
             <defs>
               <linearGradient id="wire-active" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -307,7 +307,7 @@ type AgentCardBlockProps = {
 };
 
 function AgentCardBlock({ agent, activity, size = "compact" }: AgentCardBlockProps) {
-  const cardWidth = size === "compact" ? "w-64" : "w-full";
+  const cardWidth = size === "compact" ? "w-56 sm:w-64" : "w-full";
   const roleText = roleDescriptions[agent.stream] ?? `Primary: ${agent.stream}`;
   const activityFeed = activity.length ? activity : [{ time: formatTime(new Date()), message: agent.directive, iso: new Date().toISOString() }];
 
