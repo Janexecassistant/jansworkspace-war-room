@@ -139,7 +139,14 @@ export function WarRoomSurface({ initialSnapshot }: Props) {
           </p>
         </header>
 
-        <section className="relative h-[420px] overflow-hidden rounded-[46px] border border-white/10 bg-gradient-to-b from-white/5/10 via-transparent to-white/5/10 p-6 lg:h-[720px]">
+        <section className="lg:hidden rounded-[2rem] border border-white/5 bg-white/5/15 px-6 py-8 text-center">
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <CommanderCore active={snapshot.directorActive} label={lastDirectiveLabel} />
+          </div>
+          <p className="mt-4 text-xs text-slate-300">Tap the refresh pill above any time you need the latest directive.</p>
+        </section>
+
+        <section className="relative hidden h-[720px] overflow-hidden rounded-[46px] border border-white/10 bg-gradient-to-b from-white/5/10 via-transparent to-white/5/10 p-6 lg:block">
           <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
             <defs>
               <linearGradient id="wire-active" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -166,17 +173,7 @@ export function WarRoomSurface({ initialSnapshot }: Props) {
           <div className="absolute left-1/2 top-1/2 h-[26rem] w-[26rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
           <div className="absolute left-1/2 top-1/2 h-[18rem] w-[18rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
 
-          <div
-            className={`commander-core absolute left-1/2 top-1/2 flex h-48 w-48 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-amber-400/40 bg-gradient-to-b from-amber-500/30 to-amber-400/20 text-center shadow-[0_0_80px_rgba(251,191,36,0.25)] ${snapshot.directorActive ? "commander-core--active" : ""}`}
-          >
-            <div className="text-sm uppercase tracking-[0.5em] text-amber-100/80">Jan</div>
-            <div className="text-3xl font-semibold text-white">1.2</div>
-            <p className="mt-3 text-xs text-amber-50/80">Merch on Tap · Command Hub</p>
-            <p className={`mt-2 text-xs ${snapshot.directorActive ? "text-amber-50" : "text-amber-100/60"}`}>
-              {snapshot.directorActive ? "Directive live" : "Standby"}
-            </p>
-            <p className="text-[11px] uppercase tracking-[0.35em] text-amber-100/50">{lastDirectiveLabel}</p>
-          </div>
+          <CommanderCore active={snapshot.directorActive} label={lastDirectiveLabel} />
 
           {orbitNodes.map((node) => (
             <div
@@ -352,6 +349,27 @@ function AgentCardBlock({ agent, activity, size = "compact" }: AgentCardBlockPro
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+type CommanderCoreProps = {
+  active: boolean;
+  label: string;
+};
+
+function CommanderCore({ active, label }: CommanderCoreProps) {
+  return (
+    <div
+      className={`commander-core flex h-48 w-48 flex-col items-center justify-center rounded-full border border-amber-400/40 bg-gradient-to-b from-amber-500/30 to-amber-400/20 text-center shadow-[0_0_80px_rgba(251,191,36,0.25)] ${active ? "commander-core--active" : ""}`}
+    >
+      <div className="text-sm uppercase tracking-[0.5em] text-amber-100/80">Jan</div>
+      <div className="text-3xl font-semibold text-white">1.2</div>
+      <p className="mt-3 text-xs text-amber-50/80">Merch on Tap · Command Hub</p>
+      <p className={`mt-2 text-xs ${active ? "text-amber-50" : "text-amber-100/60"}`}>
+        {active ? "Directive live" : "Standby"}
+      </p>
+      <p className="text-[11px] uppercase tracking-[0.35em] text-amber-100/50">{label}</p>
     </div>
   );
 }
