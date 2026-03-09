@@ -2,6 +2,8 @@ import { supabase } from "./supabase";
 import { pgPool } from "./postgres";
 import { mockSnapshot, type WarRoomSnapshot } from "./mockData";
 
+const COMMAND_WINDOW_MS = 2 * 60 * 1000;
+
 type AgentRow = {
   id: string;
   name: string;
@@ -32,6 +34,23 @@ type RpcSnapshot = {
   objectives?: ObjectiveRow[];
   activity?: EventRow[];
 };
+
+function getCommanderStatus(rows: EventRow[] | undefined): Pick<WarRoomSnapshot, "lastDirective" | "directorActive"> {
+  if (!rows?.length) {
+    return { lastDirective: null, directorActive: false };
+  }
+
+  const latestIso = rows[0]?.occurred_at;
+  if (!latestIso) {
+    return { lastDirective: null, directorActive: false };
+  }
+
+  const delta = Date.now() - new Date(latestIso).getTime();
+  return {
+    lastDirective: latestIso,
+    directorActive: delta <= COMMAND_WINDOW_MS,
+  };
+}
 
 function mapAgents(rows: AgentRow[]): WarRoomSnapshot["agents"] {
   return rows.map((agent) => ({
@@ -64,6 +83,7 @@ function mapEvents(rows: EventRow[]): WarRoomSnapshot["activity"] {
     }),
     agent: event.agent,
     message: event.message,
+    iso: event.occurred_at,
   }));
 }
 
@@ -73,10 +93,13 @@ function normalizeRpcSnapshot(payload: RpcSnapshot | null): WarRoomSnapshot | nu
     return null;
   }
 
+  const commanderStatus = getCommanderStatus(payload.activity);
+
   return {
     agents: mapAgents(payload.agents),
     objectives: mapObjectives(payload.objectives),
     activity: mapEvents(payload.activity),
+    ...commanderStatus,
   };
 }
 
@@ -96,10 +119,13 @@ async function fetchFromPostgres(): Promise<WarRoomSnapshot | null> {
       ),
     ]);
 
+    const commanderStatus = getCommanderStatus(eventRes.rows);
+
     return {
       agents: mapAgents(agentRes.rows),
       objectives: mapObjectives(objectiveRes.rows),
       activity: mapEvents(eventRes.rows),
+      ...commanderStatus,
     };
   } catch (error) {
     console.error("Failed to read War Room snapshot via Postgres", error);
@@ -128,10 +154,14 @@ export async function fetchSnapshot(): Promise<WarRoomSnapshot> {
     ]);
 
     if (!agentRes.error && !objectiveRes.error && !activityRes.error) {
+      const eventRows = (activityRes.data as EventRow[]) ?? [];
+      const commanderStatus = getCommanderStatus(eventRows);
+
       return {
         agents: mapAgents((agentRes.data as AgentRow[]) ?? []),
         objectives: mapObjectives((objectiveRes.data as ObjectiveRow[]) ?? []),
-        activity: mapEvents((activityRes.data as EventRow[]) ?? []),
+        activity: mapEvents(eventRows),
+        ...commanderStatus,
       };
     }
   }

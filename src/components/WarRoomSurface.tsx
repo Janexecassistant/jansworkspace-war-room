@@ -40,6 +40,8 @@ export function WarRoomSurface({ initialSnapshot }: Props) {
   const [snapshot, setSnapshot] = useState(initialSnapshot);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
+  const lastDirectiveLabel = snapshot.lastDirective ? `${formatTime(new Date(snapshot.lastDirective))} ET` : "Awaiting signal";
+
   useEffect(() => {
     let refreshTimeout: NodeJS.Timeout | null = null;
 
@@ -128,10 +130,16 @@ export function WarRoomSurface({ initialSnapshot }: Props) {
           <div className="absolute left-1/2 top-1/2 h-[26rem] w-[26rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
           <div className="absolute left-1/2 top-1/2 h-[18rem] w-[18rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
 
-          <div className="absolute left-1/2 top-1/2 flex h-48 w-48 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-amber-400/40 bg-gradient-to-b from-amber-500/30 to-amber-400/20 text-center shadow-[0_0_80px_rgba(251,191,36,0.25)]">
+          <div
+            className={`commander-core absolute left-1/2 top-1/2 flex h-48 w-48 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-amber-400/40 bg-gradient-to-b from-amber-500/30 to-amber-400/20 text-center shadow-[0_0_80px_rgba(251,191,36,0.25)] ${snapshot.directorActive ? "commander-core--active" : ""}`}
+          >
             <div className="text-sm uppercase tracking-[0.5em] text-amber-100/80">Jan</div>
             <div className="text-3xl font-semibold text-white">1.2</div>
             <p className="mt-3 text-xs text-amber-50/80">Merch on Tap · Command Hub</p>
+            <p className={`mt-2 text-xs ${snapshot.directorActive ? "text-amber-50" : "text-amber-100/60"}`}>
+              {snapshot.directorActive ? "Directive live" : "Standby"}
+            </p>
+            <p className="text-[11px] uppercase tracking-[0.35em] text-amber-100/50">{lastDirectiveLabel}</p>
           </div>
 
           {orbitNodes.map((node) => (

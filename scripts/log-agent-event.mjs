@@ -55,6 +55,8 @@ if (pgConnection) {
     database: url.pathname.slice(1) || "postgres",
     ssl: { rejectUnauthorized: false },
   });
+
+  let wroteViaPostgres = false;
   try {
     await pool.query(
       `insert into public.war_room_agents (id, name, status, directive, progress, checkpoint, stream, icon)
@@ -83,14 +85,18 @@ if (pgConnection) {
       `insert into public.war_room_events (agent, message) values ($1, $2)`,
       [agent, message]
     );
+
     console.log(`Logged event for ${agent} via Postgres`);
+    wroteViaPostgres = true;
   } catch (error) {
-    console.error("Failed to log event via Postgres", error);
-    process.exit(1);
+    console.warn("Postgres logging failed, falling back to Supabase REST", error.message ?? error);
   } finally {
     await pool.end();
   }
-  process.exit(0);
+
+  if (wroteViaPostgres) {
+    process.exit(0);
+  }
 }
 
 if (!supabaseUrl || !serviceRoleKey) {

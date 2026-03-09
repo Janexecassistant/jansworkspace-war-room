@@ -22,13 +22,18 @@ export type ActivityEvent = {
   time: string;
   agent: string;
   message: string;
+  iso?: string;
 };
 
 export type WarRoomSnapshot = {
   agents: AgentCard[];
   objectives: Objective[];
   activity: ActivityEvent[];
+  lastDirective: string | null;
+  directorActive: boolean;
 };
+
+const mockNow = new Date();
 
 export const mockSnapshot: WarRoomSnapshot = {
   agents: [
@@ -120,26 +125,33 @@ export const mockSnapshot: WarRoomSnapshot = {
       time: "11:02",
       agent: "Store Architect",
       message: "Blueprinted new site map + section assignments",
+      iso: mockNow.toISOString(),
     },
     {
       time: "10:48",
       agent: "Catalog Curator",
       message: "Normalized catalog tags + variants",
+      iso: new Date(mockNow.getTime() - 10 * 60 * 1000).toISOString(),
     },
     {
       time: "10:30",
       agent: "Content Strategist",
       message: "Outlined hub hero copy + ticker CTA",
+      iso: new Date(mockNow.getTime() - 20 * 60 * 1000).toISOString(),
     },
     {
       time: "09:55",
       agent: "QA Operator",
       message: "QA’d checkout flow on mobile",
+      iso: new Date(mockNow.getTime() - 30 * 60 * 1000).toISOString(),
     },
     {
       time: "09:10",
       agent: "Creative Director",
       message: "Queued mockup prompts for beverage merch",
+      iso: new Date(mockNow.getTime() - 40 * 60 * 1000).toISOString(),
     },
   ],
+  lastDirective: mockNow.toISOString(),
+  directorActive: true,
 };

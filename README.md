@@ -19,6 +19,8 @@ SUPABASE_SERVICE_ROLE_KEY=...
 SUPABASE_DB_URL=postgresql://<user>:<pass>@<host>:<port>/<db> # optional, enables pg fallback + faster writer
 ```
 
+> **Note:** When you use the IPv4-friendly shared pooler, Supabase expects the username to be URL-encoded. For example, `postgres.jqtkneuubkokieeyvkos` must be written as `postgres%2Ejqtkneuubkokieeyvkos` or authentication will fail.
+
 The service role key is only used locally for scripts (agent logger + seed). Never expose it to the browser or Vercel.
 
 ## Local development
