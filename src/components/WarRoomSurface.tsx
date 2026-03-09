@@ -111,6 +111,18 @@ export function WarRoomSurface({ initialSnapshot }: Props) {
   }, [fetchLatestSnapshot, applySnapshot]);
 
   const orbitNodes = useMemo(() => buildOrbit(snapshot), [snapshot]);
+  const globalTicker = useMemo(() => {
+    const entries = snapshot.activity.slice(0, 5);
+    if (entries.length) return entries;
+    return [
+      {
+        time: formatTime(new Date()),
+        agent: "War Room",
+        message: "Standing by",
+        iso: new Date().toISOString(),
+      },
+    ];
+  }, [snapshot]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#03010b] via-[#05050f] to-black text-slate-100">
@@ -140,10 +152,23 @@ export function WarRoomSurface({ initialSnapshot }: Props) {
         </header>
 
         <section className="lg:hidden rounded-[2rem] border border-white/5 bg-white/5/15 px-6 py-8 text-center">
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          <div className="relative flex items-center justify-center py-8">
+            <div className="absolute h-64 w-64 rounded-full border border-amber-400/20 animate-pulse" />
+            <div className="absolute h-80 w-80 rounded-full border border-amber-400/10" />
+            <div className="absolute h-px w-64 bg-gradient-to-r from-transparent via-amber-400/50 to-transparent" />
+            <div className="absolute w-px h-64 bg-gradient-to-b from-transparent via-amber-400/40 to-transparent" />
             <CommanderCore active={snapshot.directorActive} label={lastDirectiveLabel} />
           </div>
-          <p className="mt-4 text-xs text-slate-300">Tap the refresh pill above any time you need the latest directive.</p>
+          <p className="text-xs text-slate-300">Tap the refresh pill above any time you need the latest directive.</p>
+          <div className="mt-4 overflow-hidden rounded-full border border-white/5 bg-white/5/20 px-3 py-2">
+            <div className="ticker-row whitespace-nowrap text-[11px] uppercase tracking-[0.35em] text-slate-200">
+              {globalTicker.map((item, idx) => (
+                <span key={`mobile-ticker-${item.iso ?? idx}`}>
+                  {item.time} · {item.agent} · {item.message}
+                </span>
+              ))}
+            </div>
+          </div>
         </section>
 
         <section className="relative hidden h-[720px] overflow-hidden rounded-[46px] border border-white/10 bg-gradient-to-b from-white/5/10 via-transparent to-white/5/10 p-6 lg:block">
