@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { AgentCard, WarRoomSnapshot } from "@/lib/mockData";
 import { supabase } from "@/lib/supabase";
 
@@ -32,6 +32,12 @@ const statusLabel = {
   blocked: "BLOCKED",
 };
 
+type AgentActivityEntry = {
+  time: string;
+  message: string;
+  iso?: string;
+};
+
 type Props = {
   initialSnapshot: WarRoomSnapshot;
 };
@@ -39,27 +45,48 @@ type Props = {
 export function WarRoomSurface({ initialSnapshot }: Props) {
   const [snapshot, setSnapshot] = useState(initialSnapshot);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const applySnapshot = useCallback((data: WarRoomSnapshot | null) => {
+    if (!data) return;
+    setSnapshot(data);
+    setLastUpdated(new Date());
+  }, []);
+
+  const fetchLatestSnapshot = useCallback(async () => {
+    try {
+      const res = await fetch('/api/snapshot', { cache: 'no-store' });
+      if (!res.ok) return null;
+      return (await res.json()) as WarRoomSnapshot;
+    } catch (error) {
+      console.error('Failed to refresh snapshot', error);
+      return null;
+    }
+  }, []);
+
+  const refreshSnapshot = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      const data = await fetchLatestSnapshot();
+      applySnapshot(data);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [fetchLatestSnapshot, applySnapshot]);
 
   const lastDirectiveLabel = snapshot.lastDirective ? `${formatTime(new Date(snapshot.lastDirective))} ET` : "Awaiting signal";
 
   useEffect(() => {
     let refreshTimeout: NodeJS.Timeout | null = null;
 
-    const refreshSnapshot = async () => {
-      try {
-        const res = await fetch("/api/snapshot", { cache: "no-store" });
-        if (!res.ok) return;
-        const data = (await res.json()) as WarRoomSnapshot;
-        setSnapshot(data);
-        setLastUpdated(new Date());
-      } catch (error) {
-        console.error("Failed to refresh snapshot", error);
-      }
+    const pullSnapshot = async () => {
+      const data = await fetchLatestSnapshot();
+      applySnapshot(data);
     };
 
     const scheduleRefresh = () => {
       if (refreshTimeout) clearTimeout(refreshTimeout);
-      refreshTimeout = setTimeout(refreshSnapshot, 600);
+      refreshTimeout = setTimeout(pullSnapshot, 600);
     };
 
     if (supabase) {
@@ -76,12 +103,12 @@ export function WarRoomSurface({ initialSnapshot }: Props) {
       };
     }
 
-    const fallbackInterval = setInterval(refreshSnapshot, 15000);
+    const fallbackInterval = setInterval(pullSnapshot, 15000);
     return () => {
       clearInterval(fallbackInterval);
       if (refreshTimeout) clearTimeout(refreshTimeout);
     };
-  }, []);
+  }, [fetchLatestSnapshot, applySnapshot]);
 
   const orbitNodes = useMemo(() => buildOrbit(snapshot), [snapshot]);
 
@@ -94,8 +121,17 @@ export function WarRoomSurface({ initialSnapshot }: Props) {
               <p className="text-xs uppercase tracking-[0.4em] text-amber-200">War Room · Live Ops Board</p>
               <h1 className="text-3xl font-semibold text-white">Agent telemetry</h1>
             </div>
-            <div className="rounded-full border border-emerald-400/50 bg-emerald-400/10 px-4 py-1 text-sm text-emerald-200">
-              Synced · {formatTime(lastUpdated)} ET
+            <div className="flex items-center gap-3">
+              <div className="rounded-full border border-emerald-400/50 bg-emerald-400/10 px-4 py-1 text-sm text-emerald-200">
+                Synced · {formatTime(lastUpdated)} ET
+              </div>
+              <button
+                onClick={refreshSnapshot}
+                disabled={isRefreshing}
+                className="rounded-full border border-white/15 bg-white/5/40 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/40 disabled:opacity-60"
+              >
+                {isRefreshing ? "Refreshing…" : "Refresh now"}
+              </button>
             </div>
           </div>
           <p className="text-sm text-slate-300 lg:max-w-3xl">
@@ -148,7 +184,7 @@ export function WarRoomSurface({ initialSnapshot }: Props) {
               className="absolute -translate-x-1/2 -translate-y-1/2"
               style={{ left: `${node.positionX}%`, top: `${node.positionY}%` }}
             >
-              <AgentCardBlock agent={node.agent} ticker={node.ticker} />
+              <AgentCardBlock agent={node.agent} activity={node.activityLog} />
             </div>
           ))}
         </section>
@@ -158,7 +194,7 @@ export function WarRoomSurface({ initialSnapshot }: Props) {
             <AgentCardBlock
               key={`mobile-${agent.id}`}
               agent={agent}
-              ticker={buildTickerMessages(agent, snapshot.activity)}
+              activity={buildAgentActivity(agent, snapshot.activity)}
               size="full"
             />
           ))}
@@ -234,25 +270,25 @@ function buildOrbit(snapshot: WarRoomSnapshot) {
       coordY,
       positionX: coordX,
       positionY: coordY,
-      ticker: buildTickerMessages(agent, snapshot.activity),
+      activityLog: buildAgentActivity(agent, snapshot.activity),
     };
   });
 }
 
-function buildTickerMessages(agent: AgentCard, activity: WarRoomSnapshot["activity"]) {
-  const messages = activity
-    .filter((event) => event.agent === agent.name)
-    .map((event) => `${event.time} · ${event.message}`);
+function buildAgentActivity(agent: AgentCard, activity: WarRoomSnapshot["activity"]): AgentActivityEntry[] {
+  const entries = activity.filter((event) => event.agent === agent.name).slice(0, 3);
 
-  if (!messages.length) {
-    messages.push(`${formatTime(new Date())} · ${agent.directive}`);
+  if (entries.length === 0) {
+    return [
+      {
+        time: formatTime(new Date()),
+        message: agent.directive || "Standing by",
+        iso: new Date().toISOString(),
+      },
+    ];
   }
 
-  if (messages.length === 1) {
-    messages.push(`${messages[0]} · standby`);
-  }
-
-  return messages.slice(0, 4);
+  return entries;
 }
 
 function formatTime(date: Date) {
@@ -266,14 +302,14 @@ function formatTime(date: Date) {
 
 type AgentCardBlockProps = {
   agent: AgentCard;
-  ticker: string[];
+  activity: AgentActivityEntry[];
   size?: "compact" | "full";
 };
 
-function AgentCardBlock({ agent, ticker, size = "compact" }: AgentCardBlockProps) {
+function AgentCardBlock({ agent, activity, size = "compact" }: AgentCardBlockProps) {
   const cardWidth = size === "compact" ? "w-64" : "w-full";
-  const marquee = ticker.length > 1 ? ticker : [...ticker, ticker[0]];
   const roleText = roleDescriptions[agent.stream] ?? `Primary: ${agent.stream}`;
+  const activityFeed = activity.length ? activity : [{ time: formatTime(new Date()), message: agent.directive, iso: new Date().toISOString() }];
 
   return (
     <div className={`${cardWidth} rounded-3xl border border-white/10 bg-black/40 p-4 shadow-[0_20px_45px_rgba(0,0,0,0.35)] backdrop-blur`}>
@@ -305,10 +341,14 @@ function AgentCardBlock({ agent, ticker, size = "compact" }: AgentCardBlockProps
           <span>{agent.checkpoint}</span>
         </div>
       </div>
-      <div className="mt-4 overflow-hidden rounded-full border border-white/5 bg-white/5/30 px-3 py-1">
-        <div className="ticker-row whitespace-nowrap text-[10px] uppercase tracking-[0.35em] text-slate-300">
-          {marquee.map((item, idx) => (
-            <span key={`${agent.id}-ticker-${idx}`}>{item}</span>
+      <div className="mt-4 rounded-2xl border border-white/10 bg-white/5/30 p-3">
+        <p className="text-[10px] uppercase tracking-[0.35em] text-slate-400">Latest activity</p>
+        <div className="mt-2 space-y-2 text-xs text-slate-100">
+          {activityFeed.slice(0, 3).map((entry, idx) => (
+            <div key={`${agent.id}-activity-${entry.iso ?? idx}`}>
+              <p className="text-[11px] text-slate-400">{entry.time}</p>
+              <p>{entry.message}</p>
+            </div>
           ))}
         </div>
       </div>
