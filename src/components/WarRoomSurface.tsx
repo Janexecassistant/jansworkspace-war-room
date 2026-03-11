@@ -151,16 +151,12 @@ export function WarRoomSurface({ initialSnapshot }: Props) {
           </p>
         </header>
 
-        <section className="lg:hidden rounded-[2rem] border border-white/5 bg-white/5/15 px-6 py-8 text-center">
-          <div className="relative flex items-center justify-center py-8">
-            <div className="absolute h-64 w-64 rounded-full border border-amber-400/20 animate-pulse" />
-            <div className="absolute h-80 w-80 rounded-full border border-amber-400/10" />
-            <div className="absolute h-px w-64 bg-gradient-to-r from-transparent via-amber-400/50 to-transparent" />
-            <div className="absolute w-px h-64 bg-gradient-to-b from-transparent via-amber-400/40 to-transparent" />
+        <section className="lg:hidden flex min-h-[360px] flex-col items-center justify-center space-y-6 rounded-[2rem] border border-white/5 bg-white/5/15 px-6 py-8 text-center">
+          <div className="relative flex w-full items-center justify-center py-8">
             <CommanderCore active={snapshot.directorActive} label={lastDirectiveLabel} />
           </div>
           <p className="text-xs text-slate-300">Tap the refresh pill above any time you need the latest directive.</p>
-          <div className="mt-4 overflow-hidden rounded-full border border-white/5 bg-white/5/20 px-3 py-2">
+          <div className="w-full overflow-hidden rounded-full border border-white/5 bg-white/5/20 px-3 py-2">
             <div className="ticker-row whitespace-nowrap text-[11px] uppercase tracking-[0.35em] text-slate-200">
               {globalTicker.map((item, idx) => (
                 <span key={`mobile-ticker-${item.iso ?? idx}`}>
@@ -198,7 +194,9 @@ export function WarRoomSurface({ initialSnapshot }: Props) {
           <div className="absolute left-1/2 top-1/2 h-[26rem] w-[26rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
           <div className="absolute left-1/2 top-1/2 h-[18rem] w-[18rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
 
-          <CommanderCore active={snapshot.directorActive} label={lastDirectiveLabel} />
+          <div className="commander-core-anchor">
+            <CommanderCore active={snapshot.directorActive} label={lastDirectiveLabel} />
+          </div>
 
           {orbitNodes.map((node) => (
             <div
@@ -386,15 +384,40 @@ type CommanderCoreProps = {
 function CommanderCore({ active, label }: CommanderCoreProps) {
   return (
     <div
-      className={`commander-core flex h-48 w-48 flex-col items-center justify-center rounded-full border border-amber-400/40 bg-gradient-to-b from-amber-500/30 to-amber-400/20 text-center shadow-[0_0_80px_rgba(251,191,36,0.25)] ${active ? "commander-core--active" : ""}`}
+      className={`commander-core relative flex h-56 w-56 items-center justify-center rounded-full border border-amber-300/40 bg-gradient-to-b from-[#1a0f1f] via-[#120912] to-[#05030a] text-center shadow-[0_0_90px_rgba(251,191,36,0.25)] ${
+        active ? "commander-core--active" : "commander-core--idle"
+      }`}
     >
-      <div className="text-sm uppercase tracking-[0.5em] text-amber-100/80">Jan</div>
-      <div className="text-3xl font-semibold text-white">1.2</div>
-      <p className="mt-3 text-xs text-amber-50/80">Merch on Tap · Command Hub</p>
-      <p className={`mt-2 text-xs ${active ? "text-amber-50" : "text-amber-100/60"}`}>
-        {active ? "Directive live" : "Standby"}
-      </p>
-      <p className="text-[11px] uppercase tracking-[0.35em] text-amber-100/50">{label}</p>
+      <span className="commander-core__pulse commander-core__pulse--outer" aria-hidden="true" />
+      <span className="commander-core__pulse commander-core__pulse--inner" aria-hidden="true" />
+      <svg viewBox="0 0 120 120" className="commander-core__brain" role="presentation" aria-hidden="true">
+        <defs>
+          <radialGradient id="commander-brain-fill" cx="50%" cy="40%" r="70%">
+            <stop offset="0%" stopColor="#fde68a" stopOpacity="0.95" />
+            <stop offset="45%" stopColor="#fcd34d" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#a16207" stopOpacity="0.6" />
+          </radialGradient>
+          <linearGradient id="commander-brain-wave" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#fff7ed" stopOpacity="0.95" />
+            <stop offset="100%" stopColor="#fde68a" stopOpacity="0.35" />
+          </linearGradient>
+        </defs>
+        <path
+          className="commander-core__brain-outline"
+          d="M60 12c-16 0-30 12-30 28 0 8 2.8 14.7 7.6 19.6-3.8 4.1-5.6 8.9-5.6 14.9 0 12.5 11.4 23.5 24 23.5h8c12.6 0 24-11 24-23.5 0-6-1.9-10.8-5.6-14.9 4.8-4.9 7.6-11.6 7.6-19.6 0-16-14-28-30-28z"
+          fill="url(#commander-brain-fill)"
+        />
+        <path className="commander-core__brain-wave commander-core__brain-wave--one" d="M34 60c6-4 15-7 26-7s20 3 26 7" fill="none" />
+        <path className="commander-core__brain-wave commander-core__brain-wave--two" d="M38 73c7-4 12-6 22-6s15 2 22 6" fill="none" />
+      </svg>
+      <div className="commander-core__badge">
+        <span className="commander-core__callsign">Jan</span>
+        <span className="commander-core__version">1.2</span>
+      </div>
+      <div className="commander-core__status">
+        <span className="commander-core__state">{active ? "Signal live" : "Standby link"}</span>
+        <span className="commander-core__timestamp">{label}</span>
+      </div>
     </div>
   );
 }
