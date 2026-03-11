@@ -61,16 +61,16 @@ body {
 
 @keyframes commander-halo {
   0% {
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.18);
-    border-color: rgba(56, 189, 248, 0.35);
+    box-shadow: 0 0 40px rgba(251, 191, 36, 0.2);
+    border-color: rgba(251, 191, 36, 0.35);
   }
   50% {
-    box-shadow: 0 0 140px rgba(56, 189, 248, 0.55);
-    border-color: rgba(56, 189, 248, 0.95);
+    box-shadow: 0 0 120px rgba(251, 191, 36, 0.55);
+    border-color: rgba(251, 191, 36, 0.85);
   }
   100% {
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.18);
-    border-color: rgba(56, 189, 248, 0.35);
+    box-shadow: 0 0 40px rgba(251, 191, 36, 0.2);
+    border-color: rgba(251, 191, 36, 0.35);
   }
 }
 
@@ -85,41 +85,6 @@ body {
   }
   100% {
     transform: scale(1.55);
-    opacity: 0;
-  }
-}
-
-@keyframes commander-brain-wave {
-  0% {
-    stroke-dashoffset: 120;
-  }
-  100% {
-    stroke-dashoffset: -120;
-  }
-}
-
-@keyframes commander-brain-glow {
-  0% {
-    filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.25));
-  }
-  50% {
-    filter: drop-shadow(0 0 32px rgba(14, 165, 233, 0.65));
-  }
-  100% {
-    filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.25));
-  }
-}
-
-@keyframes commander-brain-spark {
-  0% {
-    stroke-dashoffset: 40;
-    opacity: 0.1;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    stroke-dashoffset: -40;
     opacity: 0;
   }
 }
@@ -147,7 +112,7 @@ body {
 .commander-core__pulse {
   position: absolute;
   border-radius: 9999px;
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  border: 1px solid rgba(251, 191, 36, 0.35);
   inset: 6px;
   animation: commander-echo 3.6s ease-out infinite;
 }
@@ -161,104 +126,34 @@ body {
   animation-delay: 0.9s;
 }
 
-.commander-core__brain {
-  width: 140px;
-  height: 140px;
-  animation: commander-brain-glow 4.5s ease-in-out infinite;
-  z-index: 2;
-}
-
-.commander-core__brain-shell {
-  stroke: rgba(191, 219, 254, 0.35);
-  stroke-width: 1.6;
-}
-
-.commander-core__brain-lobe,
-.commander-core__brain-seam,
-.commander-core__brain-fold {
-  stroke: rgba(191, 219, 254, 0.55);
-  stroke-width: 1.2;
-  stroke-linecap: round;
-  opacity: 0.9;
-}
-
-.commander-core__brain-seam {
-  stroke-dasharray: 6;
-}
-
-.commander-core__brain-fold {
-  stroke-dasharray: 18;
-}
-
-.commander-core__brain-wave {
-  stroke: url(#commander-brain-wave);
-  stroke-width: 2.2;
-  stroke-dasharray: 120;
-  animation: commander-brain-wave 2.4s linear infinite;
-  opacity: 0.8;
-}
-
-.commander-core__brain-wave--two {
-  animation-delay: 0.7s;
-}
-
-.commander-core__brain-spark {
-  stroke: #38bdf8;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-dasharray: 40;
-  animation: commander-brain-spark 1.8s linear infinite;
-}
-
-.commander-core__brain-spark--two {
-  animation-delay: 0.4s;
-}
-
-.commander-core__brain-spark--three {
-  animation-delay: 0.9s;
-}
-
-.commander-core__badge {
-  position: absolute;
-  top: 12px;
-  display: inline-flex;
-  gap: 0.35rem;
-  align-items: center;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  background: rgba(2, 6, 23, 0.8);
-  border: 1px solid rgba(191, 219, 254, 0.2);
+.commander-core__monogram {
+  font-size: 0.75rem;
+  letter-spacing: 0.55em;
   text-transform: uppercase;
-  font-size: 0.6rem;
-  letter-spacing: 0.35em;
+  color: rgba(255, 255, 255, 0.65);
 }
 
-.commander-core__callsign {
-  color: #bae6fd;
-}
-
-.commander-core__version {
-  color: #38bdf8;
-}
-
-.commander-core__status {
-  position: absolute;
-  bottom: 16px;
-  width: calc(100% - 32px);
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  font-size: 0.58rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: rgba(191, 219, 254, 0.8);
-}
-
-.commander-core__state {
+.commander-core__version-pill {
+  font-size: 3rem;
   font-weight: 600;
-  color: #93c5fd;
+  color: #fff7ed;
+  letter-spacing: 0.1em;
 }
 
-.commander-core__timestamp {
-  color: rgba(148, 163, 184, 0.8);
+.commander-core__subtitle {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.commander-core__state-text {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4em;
+  color: #fef3c7;
+}
+
+.commander-core__timestamp-text {
+  font-size: 0.65rem;
+  letter-spacing: 0.35em;
+  color: rgba(255, 255, 255, 0.45);
 }

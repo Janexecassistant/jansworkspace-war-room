@@ -382,48 +382,17 @@ type CommanderCoreProps = {
 function CommanderCore({ active, label }: CommanderCoreProps) {
   return (
     <div
-      className={`commander-core relative flex h-56 w-56 items-center justify-center rounded-full border border-sky-400/60 bg-gradient-to-b from-[#031a32] via-[#040d1f] to-[#010409] text-center shadow-[0_0_90px_rgba(56,189,248,0.45)] ${
+      className={`commander-core relative flex h-56 w-56 flex-col items-center justify-center gap-2 rounded-full border border-amber-300/50 bg-gradient-to-b from-[#1a0f1f] via-[#120912] to-[#05030a] text-center shadow-[0_0_90px_rgba(251,191,36,0.35)] ${
         active ? "commander-core--active" : "commander-core--idle"
       }`}
     >
       <span className="commander-core__pulse commander-core__pulse--outer" aria-hidden="true" />
       <span className="commander-core__pulse commander-core__pulse--inner" aria-hidden="true" />
-      <svg viewBox="0 0 120 120" className="commander-core__brain" role="presentation" aria-hidden="true">
-        <defs>
-          <radialGradient id="commander-brain-core" cx="50%" cy="45%" r="65%">
-            <stop offset="0%" stopColor="#e0f2fe" stopOpacity="0.95" />
-            <stop offset="45%" stopColor="#60a5fa" stopOpacity="0.95" />
-            <stop offset="100%" stopColor="#1d4ed8" stopOpacity="0.65" />
-          </radialGradient>
-          <linearGradient id="commander-brain-wave" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#bae6fd" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#2563eb" stopOpacity="0.4" />
-          </linearGradient>
-        </defs>
-        <path
-          className="commander-core__brain-shell"
-          d="M60 12c-16 0-30 12-30 28 0 8.5 3.3 15.2 8.8 20.4-3.4 4.3-5.2 9.4-5.2 15.2 0 13.5 12.5 24.4 26.4 24.4h8c13.9 0 26.4-10.9 26.4-24.4 0-5.8-1.8-10.9-5.2-15.2 5.5-5.2 8.8-11.9 8.8-20.4 0-16-14-28-30-28z"
-          fill="url(#commander-brain-core)"
-        />
-        <path className="commander-core__brain-lobe commander-core__brain-lobe--left" d="M58 24c-11 0-20 8-20 19 0 6.7 3 12.3 9.5 16.6-5 3.6-8.3 9.5-8.3 16.6 0 11.3 9.5 19.8 20.8 19.8" fill="none" />
-        <path className="commander-core__brain-lobe commander-core__brain-lobe--right" d="M62 24c11 0 20 8 20 19 0 6.7-3 12.3-9.5 16.6 5 3.6 8.3 9.5 8.3 16.6 0 11.3-9.5 19.8-20.8 19.8" fill="none" />
-        <path className="commander-core__brain-seam" d="M60 26v68" fill="none" />
-        <path className="commander-core__brain-fold" d="M46 42c-6 3.5-10 8.5-10 14.8 0 7.5 5.4 13.5 12.5 15.8" fill="none" />
-        <path className="commander-core__brain-fold commander-core__brain-fold--right" d="M74 42c6 3.5 10 8.5 10 14.8 0 7.5-5.4 13.5-12.5 15.8" fill="none" />
-        <path className="commander-core__brain-wave commander-core__brain-wave--one" d="M34 60c6-4 15-7 26-7s20 3 26 7" fill="none" />
-        <path className="commander-core__brain-wave commander-core__brain-wave--two" d="M38 73c7-4 12-6 22-6s15 2 22 6" fill="none" />
-        <path className="commander-core__brain-spark commander-core__brain-spark--one" d="M32 54c10-10 20-12 32-8" fill="none" />
-        <path className="commander-core__brain-spark commander-core__brain-spark--two" d="M44 82c-4 2-7 5-9 10" fill="none" />
-        <path className="commander-core__brain-spark commander-core__brain-spark--three" d="M76 78c6 4 12 6 20 2" fill="none" />
-      </svg>
-      <div className="commander-core__badge">
-        <span className="commander-core__callsign">Jan</span>
-        <span className="commander-core__version">1.2</span>
-      </div>
-      <div className="commander-core__status">
-        <span className="commander-core__state">{active ? "Signal live" : "Standby link"}</span>
-        <span className="commander-core__timestamp">{label}</span>
-      </div>
+      <div className="commander-core__monogram">Jan</div>
+      <div className="commander-core__version-pill">1.2</div>
+      <p className="commander-core__subtitle">Merch on Tap · Command Hub</p>
+      <p className="commander-core__state-text">{active ? "Directive live" : "Standby"}</p>
+      <p className="commander-core__timestamp-text">{label}</p>
     </div>
   );
 }

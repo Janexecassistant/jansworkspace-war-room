@@ -4,6 +4,19 @@ import { mockSnapshot, type WarRoomSnapshot } from "./mockData";
 
 const COMMAND_WINDOW_MS = 2 * 60 * 1000;
 
+const AGENT_ALIASES: Record<string, string> = {
+  "Catalog Curator": "Catalog",
+  "Content Strategist": "Copy",
+  "Creative Director": "Creative",
+  "QA Operator": "QA",
+  "Store Architect": "Ops",
+};
+
+function aliasAgentName(name: string | null | undefined): string {
+  if (!name) return "Agent";
+  return AGENT_ALIASES[name] ?? name;
+}
+
 type AgentRow = {
   id: string;
   name: string;
@@ -55,7 +68,7 @@ function getCommanderStatus(rows: EventRow[] | undefined): Pick<WarRoomSnapshot,
 function mapAgents(rows: AgentRow[]): WarRoomSnapshot["agents"] {
   return rows.map((agent) => ({
     id: agent.id,
-    name: agent.name,
+    name: aliasAgentName(agent.name),
     status: (agent.status as WarRoomSnapshot["agents"][number]["status"]) ?? "idle",
     directive: agent.directive ?? "",
     progress: agent.progress ?? 0,
@@ -81,7 +94,7 @@ function mapEvents(rows: EventRow[]): WarRoomSnapshot["activity"] {
       minute: "2-digit",
       timeZone: "America/New_York",
     }),
-    agent: event.agent,
+    agent: aliasAgentName(event.agent),
     message: event.message,
     iso: event.occurred_at,
   }));
